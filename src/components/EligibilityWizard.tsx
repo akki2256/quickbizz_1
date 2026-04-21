@@ -211,7 +211,7 @@ export default function EligibilityWizard() {
 					Thanks — your details are saved. We&apos;ll be in touch shortly.
 				</p>
 				<a
-					href="#lead"
+					href="/contact#lead"
 					className="mt-6 inline-block text-sm font-medium text-cta underline"
 				>
 					Need to add a note? Contact us below
@@ -247,7 +247,7 @@ export default function EligibilityWizard() {
 						Start again
 					</button>
 					<a
-						href="#lead"
+						href="/contact#lead"
 						className="inline-flex items-center justify-center rounded-xl bg-cta px-6 py-3 text-sm font-semibold text-white transition hover:brightness-110"
 					>
 						Contact us
@@ -265,7 +265,7 @@ export default function EligibilityWizard() {
 		step.kind === 'tel';
 
 	return (
-		<div className="rounded-2xl border border-brand/20 bg-surface p-6 shadow-xl shadow-brand/10 sm:p-8">
+		<div className="rounded-2xl border border-brand/20 bg-surface p-6 text-center shadow-xl shadow-brand/10 sm:p-8">
 			<div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-page">
 				<div
 					className="h-full rounded-full bg-cta transition-[width] duration-300"
@@ -273,11 +273,8 @@ export default function EligibilityWizard() {
 				/>
 			</div>
 
-			<div className="mb-2 flex items-start justify-between gap-4">
-				<p className="text-xs font-medium uppercase tracking-wider text-fg-muted">
-					Step {stepIndex + 1} of {total}
-				</p>
-				{stepIndex > 0 && (
+			{stepIndex > 0 && (
+				<div className="mb-2 flex justify-end">
 					<button
 						type="button"
 						onClick={handleBack}
@@ -286,8 +283,8 @@ export default function EligibilityWizard() {
 					>
 						Back
 					</button>
-				)}
-			</div>
+				</div>
+			)}
 
 			<h3
 				id="eligibility-q-title"
@@ -330,12 +327,12 @@ export default function EligibilityWizard() {
 								aria-checked={input === opt}
 								disabled={loading}
 								onClick={() => handleChoiceSelect(opt)}
-								className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border px-4 py-3.5 text-center text-sm font-medium leading-snug transition ${
+								className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border px-4 py-3.5 text-center text-sm font-medium leading-snug transition duration-200 ${
 									loading ? 'cursor-not-allowed opacity-60' : ''
 								} ${
 									input === opt
-										? 'border-cta bg-page ring-2 ring-cta/25'
-										: 'border-brand/20 hover:border-brand/35 bg-page'
+										? 'border-cta bg-page ring-2 ring-cta/25 enabled:hover:shadow-lg enabled:hover:shadow-brand/25'
+										: 'border-brand/20 bg-page hover:border-brand/35 enabled:hover:shadow-lg enabled:hover:shadow-brand/20'
 								}`}
 							>
 								<span className="block w-full text-balance">{formatChoiceLabel(opt)}</span>
@@ -356,7 +353,7 @@ export default function EligibilityWizard() {
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="off"
 						aria-describedby={showEnterHint ? 'eligibility-enter-hint' : undefined}
 					/>
@@ -373,7 +370,7 @@ export default function EligibilityWizard() {
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="email"
 						aria-describedby="eligibility-enter-hint"
 					/>
@@ -390,14 +387,14 @@ export default function EligibilityWizard() {
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="tel"
 						aria-describedby="eligibility-enter-hint"
 					/>
 				)}
 
 				{step.kind === 'otp' && (
-					<>
+					<div className="flex flex-col items-center gap-2">
 						<input
 							type="text"
 							inputMode="numeric"
@@ -406,13 +403,13 @@ export default function EligibilityWizard() {
 							onChange={(e) => handleOtpChange(e.target.value)}
 							placeholder={step.placeholder}
 							disabled={loading}
-							className="w-full max-w-xs rounded-xl border border-brand/20 bg-page px-4 py-3 text-center font-mono text-lg tracking-[0.3em] text-fg focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+							className="mx-auto w-full max-w-xs rounded-xl border border-brand/20 bg-page px-4 py-3 text-center font-mono text-lg tracking-[0.3em] text-fg focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 							autoComplete="one-time-code"
 							aria-label="Six digit verification code"
 						/>
 						{devHint && <p className="text-xs text-fg-muted">{devHint}</p>}
 						<p className="text-xs text-fg-muted">The code is submitted automatically when all 6 digits are entered.</p>
-					</>
+					</div>
 				)}
 			</div>
 
@@ -427,7 +424,7 @@ export default function EligibilityWizard() {
 				</button>
 			)}
 
-			{error && !terminated && <p className="mt-4 text-sm text-red-600">{error}</p>}
+			{error && !terminated && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
 
 			{loading && step.kind !== 'choice' && (
 				<p className="mt-4 text-center text-sm text-fg-muted">Please wait…</p>

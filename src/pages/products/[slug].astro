@@ -1,0 +1,49 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { getProductBySlug, products } from '../../lib/products';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+	return products.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const product = slug ? getProductBySlug(slug) : undefined;
+if (!product) {
+	return Astro.redirect('/');
+}
+
+const pageTitle = `${product.title} — QuickBiz`;
+---
+
+<Layout title={pageTitle} description={`${product.title} — QuickBiz.`}>
+	<Header />
+	<main>
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
+			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+				<p class="text-sm font-medium text-brand-secondary">
+					<a href="/#products" class="transition hover:text-brand">← Products</a>
+				</p>
+				<h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">
+					{product.title}
+				</h1>
+				<p class="mx-auto mt-6 max-w-2xl text-fg-muted leading-relaxed">{product.summary}</p>
+				<p class="mx-auto mt-6 max-w-2xl text-fg-muted">
+					Placeholder for extended copy: eligibility notes, fees, and disclosures—replace when ready.
+				</p>
+				<p class="mt-8">
+					<a
+						href="/#check-eligibility"
+						class="inline-flex rounded-full bg-cta px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/25 transition hover:brightness-110"
+					>
+						Check eligibility
+					</a>
+				</p>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
