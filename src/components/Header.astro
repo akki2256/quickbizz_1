@@ -1,0 +1,30 @@
+---
+const links = [
+	{ href: '#how', label: 'How it works' },
+	{ href: '#options', label: 'Options' },
+	{ href: '#lead', label: 'Get started' },
+];
+---
+
+<header
+	class="sticky top-0 z-50 border-b border-brand/15 bg-gradient-to-r from-surface from-40% to-surface-subtle shadow-[0_4px_24px_-4px_rgba(0,58,143,0.14)] backdrop-blur-md"
+>
+	<div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+		<a href="/" class="font-display text-lg font-semibold tracking-tight text-brand">
+			Quick<span class="text-cta">Biz</span>
+		</a>
+		<nav class="hidden items-center gap-8 text-sm font-medium text-fg-muted md:flex">
+			{links.map((l) => (
+				<a href={l.href} class="transition hover:text-brand-secondary">
+					{l.label}
+				</a>
+			))}
+		</nav>
+		<a
+			href="#lead"
+			class="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand/25 transition hover:brightness-110"
+		>
+			Check eligibility
+		</a>
+	</div>
+</header>

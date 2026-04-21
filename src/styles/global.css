@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+	--font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+	--font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
+
+	/* Core — cooler, bluer base */
+	--color-page: #e6ecf7;
+	--color-surface: #ffffff;
+	--color-surface-subtle: #eef3fb;
+	--color-brand: #003a8f;
+	--color-brand-secondary: #0052cc;
+
+	/* Text */
+	--color-fg: #1a1a1a;
+	--color-fg-muted: #5f6c7b;
+
+	/* Accent */
+	--color-success: #2e7d32;
+	--color-cta: #0077b6;
+
+	/* Derived — blue-shifted neutrals */
+	--color-border: #b8c9e6;
+	--color-hero-glow: rgb(0 82 204 / 0.22);
+	--color-hero-glow-deep: rgb(0 58 143 / 0.12);
+}
+
+@layer base {
+	html {
+		scroll-behavior: smooth;
+	}
+	body {
+		@apply bg-page text-fg antialiased font-sans;
+	}
+}
+
+@utility font-display {
+	font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Infinite horizontal marquee (Trusted lenders) */
+@keyframes trusted-marquee {
+	from {
+		transform: translate3d(0, 0, 0);
+	}
+	to {
+		transform: translate3d(-50%, 0, 0);
+	}
+}
+
+.trusted-marquee-track {
+	display: flex;
+	width: max-content;
+	animation: trusted-marquee 75s linear infinite;
+	will-change: transform;
+}
+
+.trusted-marquee-track:hover {
+	animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.trusted-marquee-track {
+		animation: none;
+		flex-wrap: wrap;
+		justify-content: center;
+		width: 100%;
+		max-width: 100%;
+		row-gap: 2rem;
+		column-gap: 2.5rem;
+		will-change: auto;
+	}
+
+	.trusted-marquee-dupe {
+		display: none;
+	}
+}

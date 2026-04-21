@@ -1,0 +1,160 @@
+<section
+	id="lead"
+	class="scroll-mt-20 border-t border-brand/15 bg-gradient-to-b from-page via-surface-subtle to-page py-20 sm:py-28"
+>
+	<div class="mx-auto max-w-6xl px-4 sm:px-6">
+		<div class="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-start">
+			<div>
+				<h2 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">
+					Check if we can help
+				</h2>
+				<p class="mt-4 text-lg leading-relaxed text-fg-muted">
+					Leave your details. We’ll reach out to discuss options—no cost for the initial conversation.
+				</p>
+				<ul class="mt-8 space-y-3 text-sm text-fg-muted">
+					<li class="flex gap-2">
+						<span class="shrink-0 font-semibold text-success">✓</span>
+						<span>We’ll only use this information to respond to your enquiry.</span>
+					</li>
+					<li class="flex gap-2">
+						<span class="shrink-0 font-semibold text-success">✓</span>
+						<span>No spam. Unsubscribe or ask us to delete details any time.</span>
+					</li>
+				</ul>
+			</div>
+			<div class="rounded-2xl border border-brand/20 bg-surface p-6 shadow-xl shadow-brand/10 sm:p-8">
+				<form id="lead-form" class="space-y-5" novalidate>
+					<div class="hidden" aria-hidden="true">
+						<label for="website">Website</label>
+						<input
+							type="text"
+							id="website"
+							name="website"
+							tabindex="-1"
+							autocomplete="off"
+							class="hidden"
+						/>
+					</div>
+					<div>
+						<label for="name" class="mb-1.5 block text-sm font-medium text-fg">Full name</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							required
+							autocomplete="name"
+							class="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/70 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25"
+							placeholder="Jane Smith"
+						/>
+					</div>
+					<div>
+						<label for="email" class="mb-1.5 block text-sm font-medium text-fg">Work email</label>
+						<input
+							type="email"
+							id="email"
+							name="email"
+							required
+							autocomplete="email"
+							class="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/70 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25"
+							placeholder="you@business.com.au"
+						/>
+					</div>
+					<div class="grid gap-5 sm:grid-cols-2">
+						<div>
+							<label for="phone" class="mb-1.5 block text-sm font-medium text-fg">Phone</label>
+							<input
+								type="tel"
+								id="phone"
+								name="phone"
+								autocomplete="tel"
+								class="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/70 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25"
+								placeholder="04xx xxx xxx"
+							/>
+						</div>
+						<div>
+							<label for="company" class="mb-1.5 block text-sm font-medium text-fg">Business name</label>
+							<input
+								type="text"
+								id="company"
+								name="company"
+								autocomplete="organization"
+								class="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/70 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25"
+								placeholder="Trading as…"
+							/>
+						</div>
+					</div>
+					<div>
+						<label for="message" class="mb-1.5 block text-sm font-medium text-fg">
+							What do you need? <span class="font-normal text-fg-muted">(optional)</span>
+						</label>
+						<textarea
+							id="message"
+							name="message"
+							rows="4"
+							class="w-full resize-y rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/70 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25"
+							placeholder="Amount, purpose, timeline…"
+						></textarea>
+					</div>
+					<p id="lead-form-status" class="hidden text-sm" role="status"></p>
+					<button
+						type="submit"
+						id="lead-form-submit"
+						class="w-full rounded-xl bg-cta py-3.5 text-base font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						Submit enquiry
+					</button>
+				</form>
+			</div>
+		</div>
+	</div>
+</section>
+
+<script is:inline>
+	(function () {
+		const form = document.getElementById('lead-form');
+		const status = document.getElementById('lead-form-status');
+		const submit = document.getElementById('lead-form-submit');
+		if (!form || !status || !submit) return;
+
+		form.addEventListener('submit', async function (e) {
+			e.preventDefault();
+			status.className = 'hidden text-sm';
+			submit.disabled = true;
+			const fd = new FormData(form);
+			const payload = {
+				name: String(fd.get('name') ?? '').trim(),
+				email: String(fd.get('email') ?? '').trim(),
+				phone: String(fd.get('phone') ?? '').trim(),
+				company: String(fd.get('company') ?? '').trim(),
+				message: String(fd.get('message') ?? '').trim(),
+				website: String(fd.get('website') ?? '').trim(),
+			};
+			try {
+				const res = await fetch('/api/lead', {
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify(payload),
+				});
+				const data = await res.json().catch(function () {
+					return {};
+				});
+				if (res.ok) {
+					status.textContent = 'Thanks — we’ll be in touch shortly.';
+					status.className = 'text-sm text-success';
+					form.reset();
+				} else {
+					status.textContent =
+						typeof data.error === 'string'
+							? data.error
+							: 'Something went wrong. Please try again or call us.';
+					status.className = 'text-sm text-red-600';
+				}
+			} catch {
+				status.textContent = 'Network error. Check your connection and try again.';
+				status.className = 'text-sm text-red-600';
+			} finally {
+				submit.disabled = false;
+			}
+		});
+	})();
+</script>

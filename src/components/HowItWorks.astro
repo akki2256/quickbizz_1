@@ -1,0 +1,40 @@
+---
+const steps = [
+	{
+		n: '01',
+		title: 'Short survey',
+		body: 'Share your situation and what you need—takes about a minute. No upfront credit hit to explore options.',
+	},
+	{
+		n: '02',
+		title: 'Speak to a specialist',
+		body: 'We clarify details, answer questions, and align you with lenders that fit your profile.',
+	},
+	{
+		n: '03',
+		title: 'Compare & proceed',
+		body: 'Review tailored options on your timeline. Move forward only when the terms work for you.',
+	},
+];
+---
+
+<section
+	id="how"
+	class="scroll-mt-20 border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-20 sm:py-28"
+>
+	<div class="mx-auto max-w-6xl px-4 sm:px-6">
+		<h2 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">How it works</h2>
+		<p class="mt-4 max-w-2xl text-lg text-fg-muted">
+			A straight path from enquiry to clarity—without drowning in paperwork first.
+		</p>
+		<ol class="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+			{steps.map((s) => (
+				<li class="relative rounded-2xl border border-brand/15 bg-surface p-8 shadow-md shadow-brand/5">
+					<span class="font-display text-sm font-bold text-brand-secondary">{s.n}</span>
+					<h3 class="mt-3 font-display text-xl font-semibold text-fg">{s.title}</h3>
+					<p class="mt-3 text-sm leading-relaxed text-fg-muted">{s.body}</p>
+				</li>
+			))}
+		</ol>
+	</div>
+</section>
