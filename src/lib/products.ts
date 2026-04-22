@@ -38,10 +38,10 @@ export const products: ProductItem[] = [
 			'Low-documentation paths can work when full financials are not readily available, often using bank statements and BAS as core evidence. Not all businesses qualify; suitability is assessed case by case. Placeholder summary for the interactive panel.',
 	},
 	{
-		slug: 'business-bridging-finance',
-		title: 'Business Bridging Finance',
+		slug: 'business-equity-finance',
+		title: 'Business Equity Finance',
 		summary:
-			'Bridging finance covers a gap between a near-term need and a longer-term solution—such as awaiting a property settlement or a large debtor payment. Structure and security vary. Replace this text with your licenced description and typical use cases.',
+			'Equity finance helps businesses unlock funding based on business value and ownership structure, often to support growth, expansion, or strategic projects. Structure and eligibility vary by provider. Replace this text with your licenced description and typical use cases.',
 	},
 	{
 		slug: 'bad-credit-business-loans',
