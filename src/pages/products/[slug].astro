@@ -11,6 +11,9 @@ export function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
+if (slug === 'business-bridging-finance') {
+	return Astro.redirect('/products/business-equity-finance', 301);
+}
 const product = slug ? getProductBySlug(slug) : undefined;
 if (!product) {
 	return Astro.redirect('/');
