@@ -5,12 +5,15 @@ import {
 	parseTitleAndHelper,
 	type EligibilityStep,
 } from '../data/eligibility-flow';
+import { isValidAbnChecksum, type AbnLookupResult } from '../lib/abn';
 
 const ABN_NO_DETAIL =
 	'Most lenders require an active ABN for the business funding products we can assist with.';
 
 const PERSONAL_USE_DETAIL =
 	'We specialise in business funding; personal-use requests may have limited matches.';
+
+type AbnUiState = 'idle' | 'checking' | 'valid' | 'invalid' | 'inactive' | 'service_unavailable';
 
 function validateStep(step: EligibilityStep, raw: string): string | null {
 	const v = raw.trim();
@@ -22,11 +25,12 @@ function validateStep(step: EligibilityStep, raw: string): string | null {
 		const n = Number(v.replace(/,/g, ''));
 		if (Number.isNaN(n)) return 'Enter a valid number.';
 		if (step.min !== undefined && n < step.min) {
-			if (step.key === 'borrowAmountAud') return `Minimum loan amount is $${step.min.toLocaleString('en-AU')}.`;
+			if (step.key === 'borrowAmountAud') return 'Minimum loan amount is $10,000 AUD.';
+			if (step.key === 'monthsTrading') return 'You must have been trading for at least 6 months.';
 			return `Value must be at least ${step.min}.`;
 		}
-		if (step.key === 'monthsTrading' && (!Number.isInteger(n) || n < 0)) {
-			return 'Enter whole months (0 or more).';
+		if (step.key === 'monthsTrading' && !Number.isInteger(n)) {
+			return 'Enter whole months only.';
 		}
 		return null;
 	}
@@ -43,6 +47,11 @@ function validateStep(step: EligibilityStep, raw: string): string | null {
 		if (!/^\d{6}$/.test(v)) return 'Enter the 6-digit code.';
 		return null;
 	}
+	if (step.key === 'abn') {
+		if (!v) return 'ABN is required.';
+		if (!/^\d{11}$/.test(v)) return 'Enter a valid 11-digit ABN.';
+		return null;
+	}
 	if (!v) return 'This field is required.';
 	return null;
 }
@@ -57,6 +66,11 @@ export default function EligibilityWizard() {
 	const [terminated, setTerminated] = useState(false);
 	const [terminationDetail, setTerminationDetail] = useState<string | null>(null);
 	const [devHint, setDevHint] = useState<string | null>(null);
+	const [abnStatus, setAbnStatus] = useState<AbnUiState>('idle');
+	const [abnMessage, setAbnMessage] = useState<string | null>(null);
+	const [abnEntityName, setAbnEntityName] = useState<string | null>(null);
+	const abnLookupAbortRef = useRef<AbortController | null>(null);
+	const abnLookupTimerRef = useRef<number | null>(null);
 	const busyRef = useRef(false);
 
 	const step = ELIGIBILITY_STEPS[stepIndex];
@@ -69,6 +83,81 @@ export default function EligibilityWizard() {
 		setInput(answers[step.key] ?? '');
 		setError(null);
 	}, [stepIndex, step.key, answers]);
+
+	useEffect(() => {
+		return () => {
+			abnLookupAbortRef.current?.abort();
+			if (abnLookupTimerRef.current !== null) window.clearTimeout(abnLookupTimerRef.current);
+		};
+	}, []);
+
+	useEffect(() => {
+		if (step.key !== 'abn') return;
+		const abn = input.trim();
+
+		abnLookupAbortRef.current?.abort();
+		if (abnLookupTimerRef.current !== null) {
+			window.clearTimeout(abnLookupTimerRef.current);
+			abnLookupTimerRef.current = null;
+		}
+
+		setAbnEntityName(null);
+		setAbnMessage(null);
+
+		if (!abn) {
+			setAbnStatus('idle');
+			return;
+		}
+		if (abn.length < 11) {
+			setAbnStatus('idle');
+			return;
+		}
+		if (!isValidAbnChecksum(abn)) {
+			setAbnStatus('invalid');
+			setAbnMessage('Enter a valid 11-digit ABN.');
+			return;
+		}
+
+		setAbnStatus('checking');
+		abnLookupTimerRef.current = window.setTimeout(() => {
+			const controller = new AbortController();
+			abnLookupAbortRef.current = controller;
+			void (async () => {
+				try {
+					const res = await fetch('/api/abn/lookup', {
+						method: 'POST',
+						headers: { 'content-type': 'application/json' },
+						body: JSON.stringify({ abn }),
+						signal: controller.signal,
+					});
+					const data = (await res.json()) as AbnLookupResult | { error?: string };
+					if (!res.ok) {
+						setAbnStatus('service_unavailable');
+						setAbnMessage(
+							'ABN service is temporarily unavailable. You can continue now and we will validate the ABN shortly.',
+						);
+						return;
+					}
+					if ('status' in data) {
+						setAbnStatus(data.status);
+						if (data.status === 'valid') {
+							setAbnEntityName(data.entityName);
+							setAbnMessage(null);
+							return;
+						}
+						setAbnEntityName(null);
+						setAbnMessage(data.message);
+					}
+				} catch {
+					if (controller.signal.aborted) return;
+					setAbnStatus('service_unavailable');
+					setAbnMessage(
+						'ABN service is temporarily unavailable. You can continue now and we will validate the ABN shortly.',
+					);
+				}
+			})();
+		}, 250);
+	}, [input, step.key]);
 
 	function clearDownstream(fromIndex: number) {
 		setAnswers((prev) => {
@@ -102,6 +191,16 @@ export default function EligibilityWizard() {
 		if (err) {
 			setError(err);
 			return;
+		}
+		if (step.key === 'abn') {
+			if (abnStatus === 'checking') {
+				setError('Please wait while we verify your ABN.');
+				return;
+			}
+			if (abnStatus === 'invalid' || abnStatus === 'inactive') {
+				setError(abnMessage ?? 'Please enter an active ABN.');
+				return;
+			}
 		}
 
 		/* Business rule: no ABN — stop here */
@@ -211,7 +310,7 @@ export default function EligibilityWizard() {
 					Thanks — your details are saved. We&apos;ll be in touch shortly.
 				</p>
 				<a
-					href="#lead"
+					href="/contact#lead"
 					className="mt-6 inline-block text-sm font-medium text-cta underline"
 				>
 					Need to add a note? Contact us below
@@ -247,7 +346,7 @@ export default function EligibilityWizard() {
 						Start again
 					</button>
 					<a
-						href="#lead"
+						href="/contact#lead"
 						className="inline-flex items-center justify-center rounded-xl bg-cta px-6 py-3 text-sm font-semibold text-white transition hover:brightness-110"
 					>
 						Contact us
@@ -263,9 +362,11 @@ export default function EligibilityWizard() {
 		step.kind === 'number' ||
 		step.kind === 'email' ||
 		step.kind === 'tel';
+	const isAbnStep = step.key === 'abn';
+	const blockContinueForAbn = isAbnStep && (abnStatus === 'checking' || abnStatus === 'invalid' || abnStatus === 'inactive');
 
 	return (
-		<div className="rounded-2xl border border-brand/20 bg-surface p-6 shadow-xl shadow-brand/10 sm:p-8">
+		<div className="rounded-2xl border border-brand/20 bg-surface p-6 text-center shadow-xl shadow-brand/10 sm:p-8">
 			<div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-page">
 				<div
 					className="h-full rounded-full bg-cta transition-[width] duration-300"
@@ -273,11 +374,8 @@ export default function EligibilityWizard() {
 				/>
 			</div>
 
-			<div className="mb-2 flex items-start justify-between gap-4">
-				<p className="text-xs font-medium uppercase tracking-wider text-fg-muted">
-					Step {stepIndex + 1} of {total}
-				</p>
-				{stepIndex > 0 && (
+			{stepIndex > 0 && (
+				<div className="mb-2 flex justify-end">
 					<button
 						type="button"
 						onClick={handleBack}
@@ -286,8 +384,8 @@ export default function EligibilityWizard() {
 					>
 						Back
 					</button>
-				)}
-			</div>
+				</div>
+			)}
 
 			<h3
 				id="eligibility-q-title"
@@ -330,12 +428,12 @@ export default function EligibilityWizard() {
 								aria-checked={input === opt}
 								disabled={loading}
 								onClick={() => handleChoiceSelect(opt)}
-								className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border px-4 py-3.5 text-center text-sm font-medium leading-snug transition ${
+								className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border px-4 py-3.5 text-center text-sm font-medium leading-snug transition duration-200 ${
 									loading ? 'cursor-not-allowed opacity-60' : ''
 								} ${
 									input === opt
-										? 'border-cta bg-page ring-2 ring-cta/25'
-										: 'border-brand/20 hover:border-brand/35 bg-page'
+										? 'border-cta bg-page ring-2 ring-cta/25 enabled:hover:shadow-lg enabled:hover:shadow-brand/25'
+										: 'border-brand/20 bg-page hover:border-brand/35 enabled:hover:shadow-lg enabled:hover:shadow-brand/20'
 								}`}
 							>
 								<span className="block w-full text-balance">{formatChoiceLabel(opt)}</span>
@@ -347,19 +445,40 @@ export default function EligibilityWizard() {
 				{(step.kind === 'text' || step.kind === 'number') && (
 					<input
 						type="text"
-						inputMode={step.kind === 'number' ? 'decimal' : 'text'}
+						inputMode={step.kind === 'number' || step.key === 'abn' ? 'numeric' : 'text'}
 						value={input}
 						onChange={(e) => {
-							setInput(e.target.value);
+							const nextValue =
+								step.key === 'abn' ? e.target.value.replace(/\D/g, '').slice(0, 11) : e.target.value;
+							setInput(nextValue);
 							setError(null);
 						}}
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="off"
+						maxLength={step.key === 'abn' ? 11 : undefined}
 						aria-describedby={showEnterHint ? 'eligibility-enter-hint' : undefined}
 					/>
+				)}
+				{isAbnStep && abnStatus === 'checking' && (
+					<div className="flex items-center justify-center gap-2 text-xs text-fg-muted">
+						<span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-brand/25 border-t-cta" />
+						Verifying ABN...
+					</div>
+				)}
+				{isAbnStep && abnStatus === 'valid' && abnEntityName && (
+					<p className="text-xs text-green-700">Entity name: {abnEntityName}</p>
+				)}
+				{isAbnStep && abnStatus === 'inactive' && abnMessage && (
+					<p className="text-xs text-red-600">{abnMessage}</p>
+				)}
+				{isAbnStep && abnStatus === 'invalid' && abnMessage && (
+					<p className="text-xs text-red-600">{abnMessage}</p>
+				)}
+				{isAbnStep && abnStatus === 'service_unavailable' && abnMessage && (
+					<p className="text-xs text-amber-700">{abnMessage}</p>
 				)}
 
 				{step.kind === 'email' && (
@@ -373,7 +492,7 @@ export default function EligibilityWizard() {
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="email"
 						aria-describedby="eligibility-enter-hint"
 					/>
@@ -384,20 +503,20 @@ export default function EligibilityWizard() {
 						type="tel"
 						value={input}
 						onChange={(e) => {
-							setInput(e.target.value);
+							setInput(e.target.value.replace(/\D/g, ''));
 							setError(null);
 						}}
 						onKeyDown={handleTextKeyDown}
 						placeholder={step.placeholder}
 						disabled={loading}
-						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="tel"
 						aria-describedby="eligibility-enter-hint"
 					/>
 				)}
 
 				{step.kind === 'otp' && (
-					<>
+					<div className="flex flex-col items-center gap-2">
 						<input
 							type="text"
 							inputMode="numeric"
@@ -406,13 +525,13 @@ export default function EligibilityWizard() {
 							onChange={(e) => handleOtpChange(e.target.value)}
 							placeholder={step.placeholder}
 							disabled={loading}
-							className="w-full max-w-xs rounded-xl border border-brand/20 bg-page px-4 py-3 text-center font-mono text-lg tracking-[0.3em] text-fg focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
+							className="mx-auto w-full max-w-xs rounded-xl border border-brand/20 bg-page px-4 py-3 text-center font-mono text-lg tracking-[0.3em] text-fg focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 							autoComplete="one-time-code"
 							aria-label="Six digit verification code"
 						/>
 						{devHint && <p className="text-xs text-fg-muted">{devHint}</p>}
 						<p className="text-xs text-fg-muted">The code is submitted automatically when all 6 digits are entered.</p>
-					</>
+					</div>
 				)}
 			</div>
 
@@ -420,14 +539,14 @@ export default function EligibilityWizard() {
 				<button
 					type="button"
 					onClick={() => void tryAdvance()}
-					disabled={loading}
+					disabled={loading || blockContinueForAbn}
 					className="mt-6 w-full rounded-xl bg-cta py-3.5 text-base font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					Continue
 				</button>
 			)}
 
-			{error && !terminated && <p className="mt-4 text-sm text-red-600">{error}</p>}
+			{error && !terminated && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
 
 			{loading && step.kind !== 'choice' && (
 				<p className="mt-4 text-center text-sm text-fg-muted">Please wait…</p>

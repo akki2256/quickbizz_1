@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { eligibilitySubmitSchema } from '../../../lib/eligibilityValidation';
+import { isValidAbnChecksum } from '../../../lib/abn';
 import { verifyOtp } from '../../../lib/otpStore';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 
@@ -32,6 +33,27 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const { answers, otp } = parsed.data;
+	const borrowAmount = Number((answers.borrowAmountAud ?? '').replace(/,/g, '').trim());
+	if (Number.isNaN(borrowAmount) || borrowAmount < 10000) {
+		return new Response(JSON.stringify({ error: 'Minimum loan amount is $10,000 AUD.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	const monthsTrading = Number((answers.monthsTrading ?? '').replace(/,/g, '').trim());
+	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading) || monthsTrading < 6) {
+		return new Response(JSON.stringify({ error: 'You must have been trading for at least 6 months.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	const abn = answers.abn?.trim() ?? '';
+	if (!/^\d{11}$/.test(abn) || !isValidAbnChecksum(abn)) {
+		return new Response(JSON.stringify({ error: 'Enter a valid 11-digit ABN.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
 	const mobile = answers.mobile?.trim() ?? '';
 	if (!mobile || !verifyOtp(mobile, otp)) {
 		return new Response(JSON.stringify({ error: 'Invalid or expired code' }), {

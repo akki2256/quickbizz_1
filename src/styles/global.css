@@ -4,25 +4,25 @@
 	--font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 	--font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
 
-	/* Core — cooler, bluer base */
-	--color-page: #e6ecf7;
+	/* Core — parrot / lime green */
+	--color-page: #f0fdf4;
 	--color-surface: #ffffff;
-	--color-surface-subtle: #eef3fb;
-	--color-brand: #003a8f;
-	--color-brand-secondary: #0052cc;
+	--color-surface-subtle: #dcfce7;
+	--color-brand: #14532d;
+	--color-brand-secondary: #15803d;
 
 	/* Text */
 	--color-fg: #1a1a1a;
-	--color-fg-muted: #5f6c7b;
+	--color-fg-muted: #3f5346;
 
-	/* Accent */
-	--color-success: #2e7d32;
-	--color-cta: #0077b6;
+	/* Accent — bright parrot green for CTAs */
+	--color-success: #166534;
+	--color-cta: #22c55e;
 
-	/* Derived — blue-shifted neutrals */
-	--color-border: #b8c9e6;
-	--color-hero-glow: rgb(0 82 204 / 0.22);
-	--color-hero-glow-deep: rgb(0 58 143 / 0.12);
+	/* Derived — green-tinted neutrals */
+	--color-border: #bbf7d0;
+	--color-hero-glow: rgb(34 197 94 / 0.22);
+	--color-hero-glow-deep: rgb(22 101 52 / 0.12);
 }
 
 @layer base {

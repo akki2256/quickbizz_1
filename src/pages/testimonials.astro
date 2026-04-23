@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+---
+
+<Layout
+	title="Testimonials — QuickBiz"
+	description="Customer reviews and Trustpilot testimonials for QuickBiz."
+>
+	<Header />
+	<main>
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
+			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+				<h1 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">Testimonials</h1>
+				<p class="mx-auto mt-4 max-w-2xl text-fg-muted">
+					This page will host your Trustpilot reviews and other social proof. Wire in the Trustpilot TrustBox or API
+					here when your business profile is ready.
+				</p>
+				<p class="mx-auto mt-6 max-w-2xl text-sm text-fg-muted">
+					Until then, you can link to your public Trustpilot profile from the footer or add a short note about how
+					you collect feedback.
+				</p>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>

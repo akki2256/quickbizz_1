@@ -1,0 +1,17 @@
+---
+import ProductsSectionInteractive from './ProductsSectionInteractive';
+---
+
+<section
+	id="products"
+	class="scroll-mt-20 border-t border-brand/10 bg-gradient-to-b from-surface-subtle via-surface to-page py-20 sm:py-28"
+>
+	<div class="mx-auto max-w-6xl px-4 sm:px-6">
+		<h2 class="font-display text-center text-3xl font-bold tracking-tight text-brand sm:text-4xl">Products</h2>
+		<p class="mx-auto mt-4 max-w-2xl text-center text-lg text-fg-muted">
+			Overview of funding products we can help you access. Select a product to read a short summary, or open the full
+			page for more detail.
+		</p>
+		<ProductsSectionInteractive client:load />
+	</div>
+</section>
