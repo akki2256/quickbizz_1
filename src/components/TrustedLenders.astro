@@ -5,81 +5,55 @@ const pngGlob = import.meta.glob('../../resources/logos/marquee/*.png', {
 	import: 'default',
 }) as Record<string, string>;
 
+const jpgGlob = import.meta.glob('../../resources/logos/marquee/*.{jpg,jpeg}', {
+	eager: true,
+	query: '?url',
+	import: 'default',
+}) as Record<string, string>;
+
+const svgGlob = import.meta.glob('../../resources/logos/marquee/*.svg', {
+	eager: true,
+	query: '?url',
+	import: 'default',
+}) as Record<string, string>;
+
+const webpGlob = import.meta.glob('../../resources/logos/marquee/*.webp', {
+	eager: true,
+	query: '?url',
+	import: 'default',
+}) as Record<string, string>;
+
 const icoGlob = import.meta.glob('../../resources/logos/marquee/*.ico', {
 	eager: true,
 	query: '?url',
 	import: 'default',
 }) as Record<string, string>;
 
-const bySlug: Record<string, string> = {};
-for (const [path, url] of Object.entries({ ...pngGlob, ...icoGlob })) {
-	const slug = path
-		.replace(/^.*[\\/]/, '')
-		.replace(/\.(png|ico|svg|webp)$/i, '');
-	bySlug[slug] = url;
-}
+const logoFiles = Object.entries({
+	...pngGlob,
+	...jpgGlob,
+	...svgGlob,
+	...webpGlob,
+	...icoGlob,
+});
 
-/** Big four + major regionals + widely used business / specialist lenders (AU). */
-const ORDER = [
-	'cba',
-	'westpac',
-	'nab',
-	'anz',
-	'macquarie',
-	'stgeorge',
-	'bankwest',
-	'bendigo',
-	'boq',
-	'ing',
-	'suncorp',
-	'prospa',
-	'ondeck',
-	'banjo',
-	'capify',
-	'bizcap',
-	'lumi',
-	'moula',
-	'finstro',
-	'fundsnow',
-	'scotpac',
-	'nimble',
-	'pepper',
-	'liberty',
-	'trucap',
-] as const;
-
-const ALT: Record<string, string> = {
-	cba: 'Commonwealth Bank',
-	westpac: 'Westpac',
-	nab: 'NAB',
-	anz: 'ANZ',
-	macquarie: 'Macquarie',
-	stgeorge: 'St.George Bank',
-	bankwest: 'Bankwest',
-	bendigo: 'Bendigo Bank',
-	boq: 'Bank of Queensland',
-	ing: 'ING',
-	suncorp: 'Suncorp Bank',
-	prospa: 'Prospa',
-	ondeck: 'OnDeck',
-	banjo: 'Banjo Loans',
-	capify: 'Capify',
-	bizcap: 'Bizcap',
-	lumi: 'Lumi',
-	moula: 'Moula',
-	finstro: 'Finstro',
-	fundsnow: 'Funds Now',
-	scotpac: 'ScotPac',
-	nimble: 'Nimble',
-	pepper: 'Pepper Money',
-	liberty: 'Liberty',
-	trucap: 'Trucap',
-};
-
-const lenders = ORDER.filter((slug) => bySlug[slug]).map((slug) => ({
-	name: ALT[slug] ?? slug,
-	src: bySlug[slug],
-}));
+const lenders = logoFiles
+	.sort(([a], [b]) =>
+		a
+			.replace(/^.*[\\/]/, '')
+			.localeCompare(b.replace(/^.*[\\/]/, ''), undefined, { numeric: true, sensitivity: 'base' })
+	)
+	.map(([path, src]) => {
+		const baseName = path.replace(/^.*[\\/]/, '').replace(/\.(png|jpe?g|ico|svg|webp)$/i, '');
+		const readableName = baseName
+			.replace(/[_-]+/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
+		return {
+			name: readableName || 'Lender logo',
+			src,
+		};
+	});
 ---
 
 <section
