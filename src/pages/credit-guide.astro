@@ -1,0 +1,23 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+---
+
+<Layout title="Credit guide — QuickBiz" description="QuickBiz credit guide.">
+	<Header />
+	<main>
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
+			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+				<h1 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">Credit guide</h1>
+				<p class="mx-auto mt-6 max-w-2xl text-lg text-fg-muted">
+					This page will hold your credit guide and licensing disclosures as required. Replace this placeholder with your
+					final content before launch.
+				</p>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
