@@ -25,8 +25,8 @@ import { siteNavLinks } from '../lib/siteNav';
 		</nav>
 
 		<div class="flex shrink-0 items-center gap-2 sm:gap-3">
-			<!-- Mobile / small tablet menu -->
-			<details class="group relative md:hidden">
+			<!-- Mobile / small tablet menu: close on link click (hash links to /#… don't reload the page) -->
+			<details id="mobile-menu" class="group relative md:hidden">
 				<summary
 					class="flex cursor-pointer list-none items-center justify-center rounded-full border border-brand/20 bg-surface/90 p-2.5 text-brand shadow-sm transition hover:border-brand-secondary/40 hover:bg-surface-subtle [&::-webkit-details-marker]:hidden"
 					aria-label="Open menu"
@@ -71,3 +71,15 @@ import { siteNavLinks } from '../lib/siteNav';
 		</div>
 	</div>
 </header>
+
+<script is:inline>
+	document.addEventListener('DOMContentLoaded', () => {
+		const details = document.getElementById('mobile-menu');
+		if (!details) return;
+		const nav = details.querySelector('nav[aria-label="Mobile navigation"]');
+		nav?.addEventListener('click', (e) => {
+			const a = e.target instanceof Element ? e.target.closest('a') : null;
+			if (a) details.removeAttribute('open');
+		});
+	});
+</script>
