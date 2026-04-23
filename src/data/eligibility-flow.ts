@@ -94,8 +94,8 @@ export const ELIGIBILITY_STEPS: EligibilityStep[] = [
 		key: 'borrowAmountAud',
 		kind: 'number',
 		title:
-			'How Much Do You Want to Borrow? ($AUD) (Message - Minimum loan amount starts at $5000.)',
-		min: 5000,
+			'How Much Do You Want to Borrow? ($AUD) (Message - Minimum loan amount is $10,000 AUD.)',
+		min: 10000,
 		placeholder: 'e.g. 25000',
 	},
 	{
@@ -110,8 +110,8 @@ export const ELIGIBILITY_STEPS: EligibilityStep[] = [
 		key: 'monthsTrading',
 		kind: 'number',
 		title:
-			'How Many Months Have You Been Trading? (Message - Please enter your trading time in months, so our system will be able to match you with the right lenders.)',
-		min: 0,
+			'How Many Months Have You Been Trading? (Message - You must have been trading for at least 6 months.)',
+		min: 6,
 		placeholder: 'e.g. 18',
 	},
 	{

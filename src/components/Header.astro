@@ -1,30 +1,85 @@
 ---
-const links = [
-	{ href: '#how', label: 'How it works' },
-	{ href: '#options', label: 'Options' },
-	{ href: '#check-eligibility', label: 'Get started' },
-];
+import { siteNavLinks } from '../lib/siteNav';
 ---
 
 <header
-	class="sticky top-0 z-50 border-b border-brand/15 bg-gradient-to-r from-surface from-40% to-surface-subtle shadow-[0_4px_24px_-4px_rgba(0,58,143,0.14)] backdrop-blur-md"
+	class="sticky top-0 z-50 border-b border-brand/15 bg-gradient-to-r from-surface from-40% to-surface-subtle shadow-[0_4px_24px_-4px_rgba(22,101,52,0.14)] backdrop-blur-md"
 >
-	<div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-		<a href="/" class="font-display text-lg font-semibold tracking-tight text-brand">
+	<div class="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
+		<a href="/" class="shrink-0 font-display text-lg font-semibold tracking-tight text-brand">
 			Quick<span class="text-cta">Biz</span>
 		</a>
-		<nav class="hidden items-center gap-8 text-sm font-medium text-fg-muted md:flex">
-			{links.map((l) => (
-				<a href={l.href} class="transition hover:text-brand-secondary">
-					{l.label}
-				</a>
-			))}
-		</nav>
-		<a
-			href="#check-eligibility"
-			class="rounded-full bg-cta px-4 py-2 text-sm font-semibold text-white shadow-md shadow-brand/25 transition hover:brightness-110"
+
+		<!-- Desktop -->
+		<nav
+			class="hidden items-center gap-6 text-sm font-medium text-fg-muted md:flex md:gap-8"
+			aria-label="Main navigation"
 		>
-			Check eligibility
-		</a>
+			{
+				siteNavLinks.map((l) => (
+					<a href={l.href} class="transition hover:text-brand-secondary">
+						{l.label}
+					</a>
+				))
+			}
+		</nav>
+
+		<div class="flex shrink-0 items-center gap-2 sm:gap-3">
+			<!-- Mobile / small tablet menu: close on link click (hash links to /#… don't reload the page) -->
+			<details id="mobile-menu" class="group relative md:hidden">
+				<summary
+					class="flex cursor-pointer list-none items-center justify-center rounded-full border border-brand/20 bg-surface/90 p-2.5 text-brand shadow-sm transition hover:border-brand-secondary/40 hover:bg-surface-subtle [&::-webkit-details-marker]:hidden"
+					aria-label="Open menu"
+				>
+					<svg
+						class="h-5 w-5"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke-width="1.5"
+						stroke="currentColor"
+						aria-hidden="true"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+					</svg>
+				</summary>
+				<!-- fixed + horizontal inset: avoids wide panel anchored to the hamburger clipping off the left edge -->
+				<div
+					class="fixed left-4 right-4 top-[4.5rem] z-[60] max-h-[min(70vh,28rem)] overflow-y-auto rounded-2xl border border-brand/15 bg-surface py-2 shadow-xl shadow-brand/15"
+				>
+					<nav class="flex flex-col" aria-label="Mobile navigation">
+						{
+							siteNavLinks.map((l) => (
+								<a
+									href={l.href}
+									class="px-4 py-3 text-sm font-medium text-fg-muted transition hover:bg-page hover:text-brand-secondary"
+								>
+									{l.label}
+								</a>
+							))
+						}
+					</nav>
+				</div>
+			</details>
+
+			<a
+				href="/#check-eligibility"
+				class="whitespace-nowrap rounded-full bg-cta px-3 py-2 text-xs font-semibold text-white shadow-md shadow-brand/25 transition hover:brightness-110 sm:px-4 sm:text-sm"
+			>
+				Check eligibility
+			</a>
+		</div>
 	</div>
 </header>
+
+<script is:inline>
+	document.addEventListener('DOMContentLoaded', () => {
+		const details = document.getElementById('mobile-menu');
+		if (!details) return;
+		const nav = details.querySelector('nav[aria-label="Mobile navigation"]');
+		nav?.addEventListener('click', (e) => {
+			const a = e.target instanceof Element ? e.target.closest('a') : null;
+			if (a) details.removeAttribute('open');
+		});
+	});
+</script>

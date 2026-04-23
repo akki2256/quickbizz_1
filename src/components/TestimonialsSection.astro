@@ -1,0 +1,55 @@
+---
+const reviews = [
+	{
+		quote:
+			'Clear process and fast follow-up. We had options to compare within days—no endless back-and-forth with the bank.',
+		author: 'Sarah M.',
+		detail: 'Hospitality, NSW',
+	},
+	{
+		quote:
+			'Low-doc path actually worked for us. The team explained fees upfront so we could decide without pressure.',
+		author: 'James T.',
+		detail: 'Trades, VIC',
+	},
+	{
+		quote:
+			'Professional and straightforward. Good fit for a growing business that doesn’t have time to chase lenders.',
+		author: 'Priya K.',
+		detail: 'Retail, QLD',
+	},
+];
+---
+
+<section
+	id="testimonials"
+	class="scroll-mt-20 border-t border-brand/10 bg-gradient-to-b from-surface-subtle via-page to-surface py-20 sm:py-28"
+>
+	<div class="mx-auto max-w-6xl px-4 sm:px-6">
+		<h2 class="font-display text-center text-3xl font-bold tracking-tight text-brand sm:text-4xl">Testimonials</h2>
+		<p class="mx-auto mt-4 max-w-2xl text-center text-lg text-fg-muted">
+			What clients say about working with us—placeholder reviews until Trustpilot is connected.
+		</p>
+
+		<ul class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+			{
+				reviews.map((r) => (
+					<li class="flex flex-col rounded-2xl border border-brand/12 bg-surface/90 p-6 shadow-sm shadow-brand/5 sm:p-8">
+						<p class="text-sm leading-relaxed text-fg-muted">&ldquo;{r.quote}&rdquo;</p>
+						<p class="mt-6 font-display font-semibold text-brand">{r.author}</p>
+						<p class="mt-1 text-xs text-fg-muted">{r.detail}</p>
+					</li>
+				))
+			}
+		</ul>
+
+		<p class="mt-12 text-center">
+			<a
+				href="/testimonials"
+				class="inline-flex items-center justify-center rounded-full border-2 border-brand-secondary/50 bg-surface px-8 py-3.5 text-base font-semibold text-brand-secondary transition hover:border-brand-secondary hover:bg-surface-subtle"
+			>
+				See more reviews
+			</a>
+		</p>
+	</div>
+</section>

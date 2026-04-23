@@ -1,0 +1,26 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+---
+
+<Layout
+	title="Blogs — QuickBiz"
+	description="News, newsletters, and customer stories from QuickBiz."
+>
+	<Header />
+	<main>
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
+			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+				<h1 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">Blogs</h1>
+				<p class="mx-auto mt-4 max-w-2xl text-fg-muted">
+					Use this area for newsletters, funding tips, and customer satisfaction stories. Replace this placeholder
+					with a post list, CMS-driven content, or links to your email archive when you’re ready.
+				</p>
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
