@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { parseLeadJson } from '../../lib/leadValidation';
+import { sendContactQueryEmail } from '../../lib/notificationEmail';
 import { getSupabaseAdmin } from '../../lib/supabaseAdmin';
 
 export const prerender = false;
@@ -48,21 +49,38 @@ export const POST: APIRoute = async ({ request }) => {
 		user_agent: request.headers.get('user-agent')?.slice(0, 512) ?? null,
 	};
 
-	const admin = getSupabaseAdmin();
-	if (admin) {
-		const { error } = await admin.from('leads').insert(row);
-		if (error) {
-			console.error('[lead]', error.message);
-			return new Response(JSON.stringify({ error: 'Could not save lead' }), {
-				status: 500,
-				headers: { 'content-type': 'application/json' },
-			});
-		}
-	} else if (import.meta.env.DEV) {
-		console.info('[lead] DEV (no Supabase):', row);
-	} else {
-		return new Response(JSON.stringify({ error: 'Service unavailable' }), {
-			status: 503,
+	// const admin = getSupabaseAdmin();
+	// if (admin) {
+	// 	const { error } = await admin.from('leads').insert(row);
+	// 	if (error) {
+	// 		console.error('[lead]', error.message);
+	// 		return new Response(JSON.stringify({ error: 'Could not save lead' }), {
+	// 			status: 500,
+	// 			headers: { 'content-type': 'application/json' },
+	// 		});
+	// 	}
+	// } else if (import.meta.env.DEV) {
+	// 	console.info('[lead] DEV (no Supabase):', row);
+	// } else {
+	// 	return new Response(JSON.stringify({ error: 'Service unavailable' }), {
+	// 		status: 503,
+	// 		headers: { 'content-type': 'application/json' },
+	// 	});
+	// }
+
+	try {
+		await sendContactQueryEmail({
+			name: fields.name,
+			email: fields.email,
+			phone: fields.phone || null,
+			company: fields.company || null,
+			message: fields.message || null,
+		});
+	} catch (error) {
+		console.error('[lead][email]', error);
+		const message = error instanceof Error ? error.message : 'Could not send notification email';
+		return new Response(JSON.stringify({ error: message }), {
+			status: 500,
 			headers: { 'content-type': 'application/json' },
 		});
 	}

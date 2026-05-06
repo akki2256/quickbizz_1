@@ -56,7 +56,7 @@ Requirements vary by lender.`,
 				<p class="mx-auto mt-4 max-w-2xl text-fg-muted">
 					Find quick answers to common questions about funding options through Quick Bizz.
 				</p>
-				<div class="mt-10 flex flex-col gap-3 text-left">
+				<div class="mt-10 flex flex-col gap-3 text-left" data-faq-accordion>
 					{faqs.map((item) => (
 						<details
 							class="group rounded-2xl border border-brand/12 bg-surface/90 shadow-sm shadow-brand/5 open:border-brand-secondary/30 open:shadow-md"
@@ -95,3 +95,17 @@ Requirements vary by lender.`,
 	</main>
 	<Footer />
 </Layout>
+
+<script is:inline>
+	document.querySelectorAll('[data-faq-accordion]').forEach((accordion) => {
+		const items = Array.from(accordion.querySelectorAll('details'));
+		items.forEach((item) => {
+			item.addEventListener('toggle', () => {
+				if (!item.open) return;
+				items.forEach((other) => {
+					if (other !== item) other.open = false;
+				});
+			});
+		});
+	});
+</script>
