@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import { getProductBySlug, products } from '../../lib/products';
+import { parseStructuredText } from '../../lib/textFormat';
 
 export const prerender = true;
 
@@ -20,6 +21,7 @@ if (!product) {
 }
 
 const pageTitle = `${product.title} — QuickBiz`;
+const productBlocks = parseStructuredText(product.summary);
 ---
 
 <Layout title={pageTitle} description={`${product.title} — QuickBiz.`}>
@@ -33,10 +35,19 @@ const pageTitle = `${product.title} — QuickBiz`;
 				<h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">
 					{product.title}
 				</h1>
-				<p class="mx-auto mt-6 max-w-2xl text-fg-muted leading-relaxed">{product.summary}</p>
-				<p class="mx-auto mt-6 max-w-2xl text-fg-muted">
-					Placeholder for extended copy: eligibility notes, fees, and disclosures—replace when ready.
-				</p>
+				<div class="mx-auto mt-6 max-w-2xl space-y-4 text-left text-fg-muted leading-relaxed">
+					{
+						productBlocks.map((block) =>
+							block.kind === 'list' ? (
+								<ul class="list-disc space-y-1.5 pl-5 marker:text-brand-secondary">
+									{block.items.map((item) => <li>{item}</li>)}
+								</ul>
+							) : (
+								<p class={block.emphasize ? 'font-semibold text-fg' : ''}>{block.text}</p>
+							),
+						)
+					}
+				</div>
 				<p class="mt-8">
 					<a
 						href="/#check-eligibility"

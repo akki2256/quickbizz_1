@@ -2,29 +2,47 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import { parseStructuredText } from '../lib/textFormat';
 
 export const prerender = true;
 
 const faqs = [
 	{
-		q: 'What is QuickBiz?',
-		a: 'QuickBiz helps Australian businesses explore funding options with a short eligibility check and specialist support. This is placeholder copy you can replace anytime.',
+		q: 'What does Quick Bizz do?',
+		a: 'Quick Bizz is an introducer service that connects Australian businesses with a network of trusted lenders. We do not provide loans directly.',
 	},
 	{
-		q: 'Does checking eligibility affect my credit score?',
-		a: 'Placeholder answer — describe your actual process (e.g. soft vs hard checks) here.',
+		q: 'Who can apply for business funding?',
+		a: "Any ABN-holding Australian business may be eligible to apply, including sole traders, small businesses, and established companies. Approval depends on the lender's criteria.",
 	},
 	{
-		q: 'How long does approval take?',
-		a: 'Placeholder — typical timeframes vary by product and lender. Update with your real guidance.',
+		q: 'How quickly can I get funding?',
+		a: 'Timeframes vary depending on the lender and your application. In many cases, initial responses can be quick, and funds may be released after approval and completion of required documentation.',
 	},
 	{
 		q: 'What documents will I need?',
-		a: 'Placeholder — e.g. bank statements, ID, BAS. Replace with your standard checklist.',
+		a: `Common documents may include:
+• Business Bank Statement
+• Proof of identity
+• ABN/ACN details
+• Financial or trading information
+Requirements vary by lender.`,
 	},
 	{
-		q: 'Is there a cost for the initial conversation?',
-		a: 'Placeholder — clarify whether initial consults are free and how fees work for credit assistance.',
+		q: 'Can I apply if I have a low credit score?',
+		a: 'Yes, some lenders consider applications from businesses with different credit profiles. Your business performance and cash flow may also be taken into account.',
+	},
+	{
+		q: 'Do I need to provide collateral or security?',
+		a: 'Not always. Some funding options are unsecured, meaning you may not need to provide assets as security. This depends on the lender and loan type.',
+	},
+	{
+		q: 'Will applying affect my credit score?',
+		a: 'This depends on the lender and the type of enquiry made. We can guide you through options before proceeding further.',
+	},
+	{
+		q: 'What makes Quick Bizz different?',
+		a: 'We focus on making process simple, fast and easy to understand while helping you explore multiple lender options instead of relying on just one.',
 	},
 ];
 ---
@@ -36,14 +54,14 @@ const faqs = [
 			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
 				<h1 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">FAQs</h1>
 				<p class="mx-auto mt-4 max-w-2xl text-fg-muted">
-					Answers below are placeholders — swap in your final content when ready.
+					Find quick answers to common questions about funding options through Quick Bizz.
 				</p>
 				<div class="mt-10 flex flex-col gap-3 text-left">
 					{faqs.map((item) => (
 						<details
 							class="group rounded-2xl border border-brand/12 bg-surface/90 shadow-sm shadow-brand/5 open:border-brand-secondary/30 open:shadow-md"
 						>
-							<summary class="cursor-pointer list-none px-5 py-4 font-display font-semibold text-brand transition marker:content-none [&::-webkit-details-marker]:hidden">
+							<summary class="cursor-pointer list-none px-5 py-4 font-display text-base font-bold text-brand transition marker:content-none [&::-webkit-details-marker]:hidden sm:text-lg">
 								<span class="flex items-center justify-between gap-3">
 									{item.q}
 									<span
@@ -55,7 +73,19 @@ const faqs = [
 								</span>
 							</summary>
 							<div class="border-t border-brand/10 px-5 pb-5 pt-0">
-								<p class="pt-4 text-sm leading-relaxed text-fg-muted">{item.a}</p>
+								<div class="space-y-3 pt-4 text-sm leading-relaxed text-fg-muted">
+									{
+										parseStructuredText(item.a).map((block) =>
+											block.kind === 'list' ? (
+												<ul class="list-disc space-y-1.5 pl-5 marker:text-brand-secondary">
+													{block.items.map((listItem) => <li>{listItem}</li>)}
+												</ul>
+											) : (
+												<p class={block.emphasize ? 'font-semibold text-fg' : ''}>{block.text}</p>
+											),
+										)
+									}
+								</div>
 							</div>
 						</details>
 					))}

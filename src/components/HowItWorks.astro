@@ -1,19 +1,40 @@
 ---
+import { parseStructuredText } from '../lib/textFormat';
+
 const steps = [
 	{
 		icon: 'survey' as const,
-		title: 'Short survey',
-		body: 'Share your situation and what you need—takes about a minute. No upfront credit hit to explore options.',
+		title: 'Kick Things Off by Quick 50 seconds enquiry',
+		body: `• Super quick & easy
+• No paperwork headaches
+• No obligation to proceed
+
+Just share a few details about your business, and we’ll take it from there.`,
 	},
 	{
 		icon: 'phone' as const,
-		title: 'Speak to a specialist',
-		body: 'We clarify details, answer questions, and align you with lenders that fit your profile.',
+		title: 'Let’s Talk',
+		body: `Our Team will connect you to:
+• Understand your business goals
+• Walk you through possible options
+• Answer all your questions
+
+Think of us as your finance support partner, not just a service.`,
 	},
 	{
 		icon: 'compare' as const,
-		title: 'Compare & proceed',
-		body: 'Review tailored options on your timeline. Move forward only when the terms work for you.',
+		title: 'Get Tailored Options',
+		body: `We match you with lenders who may suit your needs and bring you customised funding options.
+• Clear & transparent
+• No pressure decisions
+• Options that fit your business
+
+You stay in control – choose what works best for you.`,
+	},
+	{
+		icon: 'grow' as const,
+		title: 'Move Ahead & Grow',
+		body: 'Happy with an option? Move forward and take the next step towards growing your business with confidence.',
 	},
 ];
 ---
@@ -30,17 +51,14 @@ const steps = [
 			A straight path from enquiry to clarity—without drowning in paperwork first.
 		</p>
 
-		<div
-			class="mt-14 flex flex-col gap-6 md:flex-row md:items-stretch md:justify-center md:gap-0"
-			role="list"
-		>
+		<div class="mx-auto mt-14 flex max-w-6xl flex-col gap-3 xl:flex-row xl:items-stretch xl:justify-center xl:gap-0" role="list">
 			{
 				steps.map((s, i) => (
 					<>
-						<div
-							class="flex-1 rounded-2xl border border-brand/15 bg-surface p-8 shadow-md shadow-brand/5"
-							role="listitem"
-						>
+					<div
+						class="w-full rounded-2xl border border-brand/15 bg-surface p-5 shadow-md shadow-brand/5 sm:p-6 xl:w-[242px] xl:aspect-square xl:p-5"
+						role="listitem"
+					>
 							<div class="flex items-center gap-3">
 								<div
 									class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand"
@@ -94,32 +112,62 @@ const steps = [
 											/>
 										</svg>
 									)}
+									{s.icon === 'grow' && (
+										<svg
+											class="h-6 w-6"
+											xmlns="http://www.w3.org/2000/svg"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke-width="1.5"
+											stroke="currentColor"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm11.06-11.06l3.75 3.75M14.25 4.5h6.75v6.75"
+											/>
+										</svg>
+									)}
 								</div>
 							</div>
-							<h3 class="mt-4 font-display text-xl font-semibold text-fg">{s.title}</h3>
-							<p class="mt-3 text-sm leading-relaxed text-fg-muted">{s.body}</p>
-						</div>
-						{i < steps.length - 1 && (
-							<div
-								class="flex shrink-0 items-center justify-center py-4 md:px-2 md:py-0 lg:px-4"
-								aria-hidden="true"
-							>
-								<svg
-									class="h-9 w-9 rotate-90 text-brand-secondary md:h-10 md:w-10 md:rotate-0"
-									xmlns="http://www.w3.org/2000/svg"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke-width="1.5"
-									stroke="currentColor"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-									/>
-								</svg>
+							<h3 class="mt-3.5 font-display text-[0.95rem] font-semibold leading-snug text-fg sm:text-base">
+								{s.title}
+							</h3>
+							<div class="mt-2 space-y-2 text-[0.78rem] leading-relaxed text-fg-muted sm:text-[0.67rem]">
+								{
+									parseStructuredText(s.body).map((block) =>
+										block.kind === 'list' ? (
+											<ul class="list-disc space-y-1 pl-4.5 marker:text-brand-secondary">
+												{block.items.map((item) => <li>{item}</li>)}
+											</ul>
+										) : (
+											<p class={block.emphasize ? 'font-semibold text-fg' : ''}>{block.text}</p>
+										),
+									)
+								}
 							</div>
-						)}
+					</div>
+					{i < steps.length - 1 && (
+						<div
+							class="flex shrink-0 items-center justify-center py-1 xl:px-3 xl:py-0"
+							aria-hidden="true"
+						>
+							<svg
+								class="h-8 w-8 rotate-90 text-brand-secondary xl:h-9 xl:w-9 xl:rotate-0"
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+								/>
+							</svg>
+						</div>
+					)}
 					</>
 				))
 			}
