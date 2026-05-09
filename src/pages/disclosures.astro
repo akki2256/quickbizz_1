@@ -1,0 +1,20 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import importantLegalDisclosuresHtml from '../content/legal/important-legal-disclosures.html?raw';
+
+export const prerender = true;
+---
+
+<Layout title="Disclosures — QuickBiz" description="Important legal information and disclosures for QuickBiz.">
+	<Header />
+	<main>
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-12 sm:py-16">
+			<div class="mx-auto max-w-3xl px-4 sm:px-6">
+				<div set:html={importantLegalDisclosuresHtml} />
+			</div>
+		</section>
+	</main>
+	<Footer />
+</Layout>
