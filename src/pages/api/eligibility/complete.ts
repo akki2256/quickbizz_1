@@ -42,8 +42,20 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 	const monthsTrading = Number((answers.monthsTrading ?? '').replace(/,/g, '').trim());
-	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading) || monthsTrading < 6) {
+	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading)) {
+		return new Response(JSON.stringify({ error: 'Enter whole months only.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	if (monthsTrading < 6) {
 		return new Response(JSON.stringify({ error: 'You must have been trading for at least 6 months.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	if (monthsTrading > 999) {
+		return new Response(JSON.stringify({ error: 'Enter at most 999 months.' }), {
 			status: 400,
 			headers: { 'content-type': 'application/json' },
 		});

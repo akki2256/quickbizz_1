@@ -27,15 +27,15 @@ const productBlocks = parseStructuredText(product.summary);
 <Layout title={pageTitle} description={`${product.title} — QuickBiz.`}>
 	<Header />
 	<main>
-		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
-			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-10 sm:py-14 lg:py-12">
+			<div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
 				<p class="text-sm font-medium text-brand-secondary">
 					<a href="/#products" class="transition hover:text-brand">← Products</a>
 				</p>
 				<h1 class="mt-4 font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">
 					{product.title}
 				</h1>
-				<div class="mx-auto mt-6 max-w-2xl space-y-4 text-left text-fg-muted leading-relaxed">
+				<div class="mx-auto mt-6 max-w-4xl text-left text-fg-muted leading-relaxed lg:max-w-5xl">
 					{
 						productBlocks.map((block) =>
 							block.kind === 'list' ? (
@@ -48,12 +48,18 @@ const productBlocks = parseStructuredText(product.summary);
 						)
 					}
 				</div>
-				<p class="mt-8">
+				<p class="mt-8 flex flex-wrap items-center justify-center gap-3">
 					<a
 						href="/#check-eligibility"
 						class="inline-flex rounded-full bg-cta px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/25 transition hover:brightness-110"
 					>
 						Check eligibility
+					</a>
+					<a
+						href={`/emi-calculator?returnTo=${encodeURIComponent(`/products/${slug}`)}`}
+						class="inline-flex rounded-full border-2 border-brand/25 bg-surface px-6 py-3 text-sm font-semibold text-brand shadow-sm transition hover:border-brand/40 hover:bg-page"
+					>
+						Know your EMI
 					</a>
 				</p>
 			</div>

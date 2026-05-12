@@ -165,3 +165,19 @@ Even with a lower credit score, lenders may look at:
 export function getProductBySlug(slug: string): ProductItem | undefined {
 	return products.find((p) => p.slug === slug);
 }
+
+/** Safe in-app path for EMI "back to product" (blocks open redirects). */
+export function safeReturnToProductPath(value: string | null | undefined): string | null {
+	if (value == null || value === '') return null;
+	let path: string;
+	try {
+		path = decodeURIComponent(value.trim());
+	} catch {
+		return null;
+	}
+	if (!path.startsWith('/products/')) return null;
+	if (path.includes('?') || path.includes('#')) return null;
+	const slug = path.slice('/products/'.length);
+	if (!slug || slug.includes('/')) return null;
+	return getProductBySlug(slug) ? path : null;
+}
