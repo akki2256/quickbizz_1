@@ -32,6 +32,9 @@ function validateStep(step: EligibilityStep, raw: string): string | null {
 		if (step.key === 'monthsTrading' && !Number.isInteger(n)) {
 			return 'Enter whole months only.';
 		}
+		if (step.key === 'monthsTrading' && n > 999) {
+			return 'Enter at most 999 months.';
+		}
 		return null;
 	}
 	if (step.kind === 'email') {
@@ -71,6 +74,7 @@ export default function EligibilityWizard() {
 	const [abnEntityName, setAbnEntityName] = useState<string | null>(null);
 	const abnLookupAbortRef = useRef<AbortController | null>(null);
 	const abnLookupTimerRef = useRef<number | null>(null);
+	const manualInputRef = useRef<HTMLInputElement>(null);
 	const busyRef = useRef(false);
 
 	const step = ELIGIBILITY_STEPS[stepIndex];
@@ -83,6 +87,16 @@ export default function EligibilityWizard() {
 		setInput(answers[step.key] ?? '');
 		setError(null);
 	}, [stepIndex, step.key, answers]);
+
+	useEffect(() => {
+		if (done || terminated || loading) return;
+		const manualKinds: EligibilityStep['kind'][] = ['text', 'number', 'email', 'tel', 'otp'];
+		if (!manualKinds.includes(step.kind)) return;
+		const id = window.requestAnimationFrame(() => {
+			manualInputRef.current?.focus({ preventScroll: true });
+		});
+		return () => window.cancelAnimationFrame(id);
+	}, [stepIndex, step.kind, done, terminated, loading]);
 
 	useEffect(() => {
 		return () => {
@@ -444,12 +458,18 @@ export default function EligibilityWizard() {
 
 				{(step.kind === 'text' || step.kind === 'number') && (
 					<input
+						ref={manualInputRef}
 						type="text"
 						inputMode={step.kind === 'number' || step.key === 'abn' ? 'numeric' : 'text'}
 						value={input}
 						onChange={(e) => {
+							const raw = e.target.value;
 							const nextValue =
-								step.key === 'abn' ? e.target.value.replace(/\D/g, '').slice(0, 11) : e.target.value;
+								step.key === 'abn'
+									? raw.replace(/\D/g, '').slice(0, 11)
+									: step.key === 'monthsTrading'
+										? raw.replace(/\D/g, '').slice(0, 3)
+										: raw;
 							setInput(nextValue);
 							setError(null);
 						}}
@@ -458,7 +478,7 @@ export default function EligibilityWizard() {
 						disabled={loading}
 						className="w-full rounded-xl border border-brand/20 bg-page px-4 py-3 text-center text-fg placeholder:text-fg-muted/60 focus:border-cta focus:outline-none focus:ring-2 focus:ring-cta/25 disabled:opacity-60"
 						autoComplete="off"
-						maxLength={step.key === 'abn' ? 11 : undefined}
+						maxLength={step.key === 'abn' ? 11 : step.key === 'monthsTrading' ? 3 : undefined}
 						aria-describedby={showEnterHint ? 'eligibility-enter-hint' : undefined}
 					/>
 				)}
@@ -469,7 +489,9 @@ export default function EligibilityWizard() {
 					</div>
 				)}
 				{isAbnStep && abnStatus === 'valid' && abnEntityName && (
-					<p className="text-xs text-green-700">Entity name: {abnEntityName}</p>
+					<p className="text-xs text-green-700" aria-label={`Verified entity name: ${abnEntityName}`}>
+						{abnEntityName}
+					</p>
 				)}
 				{isAbnStep && abnStatus === 'inactive' && abnMessage && (
 					<p className="text-xs text-red-600">{abnMessage}</p>
@@ -483,6 +505,7 @@ export default function EligibilityWizard() {
 
 				{step.kind === 'email' && (
 					<input
+						ref={manualInputRef}
 						type="email"
 						value={input}
 						onChange={(e) => {
@@ -500,6 +523,7 @@ export default function EligibilityWizard() {
 
 				{step.kind === 'tel' && (
 					<input
+						ref={manualInputRef}
 						type="tel"
 						value={input}
 						onChange={(e) => {
@@ -518,6 +542,7 @@ export default function EligibilityWizard() {
 				{step.kind === 'otp' && (
 					<div className="flex flex-col items-center gap-2">
 						<input
+							ref={manualInputRef}
 							type="text"
 							inputMode="numeric"
 							maxLength={6}

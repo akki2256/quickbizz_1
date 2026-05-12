@@ -30,5 +30,27 @@ const {
 	</head>
 	<body class="min-h-screen">
 		<slot />
+		<a
+			href="/contact"
+			class="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand-secondary text-white shadow-lg shadow-brand/25 transition hover:bg-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2"
+			aria-label="Contact us"
+			title="Contact us"
+		>
+			<svg
+				class="h-7 w-7"
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke-width="1.8"
+				stroke="currentColor"
+				aria-hidden="true"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M21.75 6.75v10.5A2.25 2.25 0 0119.5 19.5h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15A2.25 2.25 0 002.25 6.75m19.5 0l-8.69 5.518a2.25 2.25 0 01-2.12 0L2.25 6.75"
+				/>
+			</svg>
+		</a>
 	</body>
 </html>

@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import EmiCalculator from '../components/EmiCalculator';
+
+export const prerender = true;
+---
+
+<Layout
+	title="EMI calculator — QuickBiz"
+	description="Estimate monthly loan repayments (EMI) with QuickBiz’s simple calculator. Illustrative only—not a quote or credit offer."
+>
+	<Header />
+	<main>
+		<EmiCalculator client:load />
+	</main>
+	<Footer />
+</Layout>

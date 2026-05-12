@@ -2,66 +2,91 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import FaqAccordionItem from '../components/FaqAccordionItem.astro';
 
 export const prerender = true;
 
 const faqs = [
 	{
-		q: 'What is QuickBiz?',
-		a: 'QuickBiz helps Australian businesses explore funding options with a short eligibility check and specialist support. This is placeholder copy you can replace anytime.',
+		q: 'What does Quick Bizz do?',
+		a: 'Quick Bizz is an introducer service that connects Australian businesses with a network of trusted lenders. We do not provide loans directly.',
 	},
 	{
-		q: 'Does checking eligibility affect my credit score?',
-		a: 'Placeholder answer — describe your actual process (e.g. soft vs hard checks) here.',
+		q: 'Who can apply for business funding?',
+		a: "Any ABN-holding Australian business may be eligible to apply, including sole traders, small businesses, and established companies. Approval depends on the lender's criteria.",
 	},
 	{
-		q: 'How long does approval take?',
-		a: 'Placeholder — typical timeframes vary by product and lender. Update with your real guidance.',
+		q: 'How quickly can I get funding?',
+		a: 'Timeframes vary depending on the lender and your application. In many cases, initial responses can be quick, and funds may be released after approval and completion of required documentation.',
 	},
 	{
 		q: 'What documents will I need?',
-		a: 'Placeholder — e.g. bank statements, ID, BAS. Replace with your standard checklist.',
+		a: `Common documents may include:
+• Business Bank Statement
+• Proof of identity
+• ABN/ACN details
+• Financial or trading information
+Requirements vary by lender.`,
 	},
 	{
-		q: 'Is there a cost for the initial conversation?',
-		a: 'Placeholder — clarify whether initial consults are free and how fees work for credit assistance.',
+		q: 'Can I apply if I have a low credit score?',
+		a: 'Yes, some lenders consider applications from businesses with different credit profiles. Your business performance and cash flow may also be taken into account.',
+	},
+	{
+		q: 'Do I need to provide collateral or security?',
+		a: 'Not always. Some funding options are unsecured, meaning you may not need to provide assets as security. This depends on the lender and loan type.',
+	},
+	{
+		q: 'Will applying affect my credit score?',
+		a: 'This depends on the lender and the type of enquiry made. We can guide you through options before proceeding further.',
+	},
+	{
+		q: 'What makes Quick Bizz different?',
+		a: 'We focus on making process simple, fast and easy to understand while helping you explore multiple lender options instead of relying on just one.',
 	},
 ];
+
+const mid = Math.ceil(faqs.length / 2);
+const faqLeft = faqs.slice(0, mid);
+const faqRight = faqs.slice(mid);
 ---
 
 <Layout title="FAQs — QuickBiz" description="Frequently asked questions about QuickBiz.">
 	<Header />
 	<main>
-		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-16 sm:py-24">
-			<div class="mx-auto max-w-3xl px-4 text-center sm:px-6">
-				<h1 class="font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">FAQs</h1>
-				<p class="mx-auto mt-4 max-w-2xl text-fg-muted">
-					Answers below are placeholders — swap in your final content when ready.
+		<section class="border-b border-brand/10 bg-gradient-to-b from-page to-surface-subtle py-10 sm:py-14 lg:py-12">
+			<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				<h1 class="text-center font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl">FAQs</h1>
+				<p class="mx-auto mt-4 max-w-3xl text-center text-fg-muted">
+					Find quick answers to common questions about funding options through Quick Bizz.
 				</p>
-				<div class="mt-10 flex flex-col gap-3 text-left">
-					{faqs.map((item) => (
-						<details
-							class="group rounded-2xl border border-brand/12 bg-surface/90 shadow-sm shadow-brand/5 open:border-brand-secondary/30 open:shadow-md"
-						>
-							<summary class="cursor-pointer list-none px-5 py-4 font-display font-semibold text-brand transition marker:content-none [&::-webkit-details-marker]:hidden">
-								<span class="flex items-center justify-between gap-3">
-									{item.q}
-									<span
-										class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-brand/15 bg-surface-subtle text-lg leading-none text-brand-secondary transition group-open:rotate-180"
-										aria-hidden="true"
-									>
-										↓
-									</span>
-								</span>
-							</summary>
-							<div class="border-t border-brand/10 px-5 pb-5 pt-0">
-								<p class="pt-4 text-sm leading-relaxed text-fg-muted">{item.a}</p>
-							</div>
-						</details>
-					))}
+				<div
+					class="mt-10 flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6"
+					data-faq-accordion
+				>
+					<div class="flex min-w-0 flex-col gap-3">
+						{faqLeft.map((item) => <FaqAccordionItem q={item.q} a={item.a} />)}
+					</div>
+					<div class="flex min-w-0 flex-col gap-3">
+						{faqRight.map((item) => <FaqAccordionItem q={item.q} a={item.a} />)}
+					</div>
 				</div>
 			</div>
 		</section>
 	</main>
 	<Footer />
 </Layout>
+
+<script is:inline>
+	document.querySelectorAll('[data-faq-accordion]').forEach((accordion) => {
+		const items = Array.from(accordion.querySelectorAll('details'));
+		items.forEach((item) => {
+			item.addEventListener('toggle', () => {
+				if (!item.open) return;
+				items.forEach((other) => {
+					if (other !== item) other.open = false;
+				});
+			});
+		});
+	});
+</script>

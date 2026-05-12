@@ -4,6 +4,8 @@ interface ImportMetaEnv {
 	readonly SUPABASE_URL?: string;
 	readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 	readonly ABR_GUID?: string;
+	readonly RESEND_API_KEY?: string;
+	readonly OTP_EXPOSE_CODE?: string;
 }
 
 interface ImportMeta {

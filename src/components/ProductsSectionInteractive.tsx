@@ -10,6 +10,15 @@ export default function ProductsSectionInteractive() {
 		() => products.find((p) => p.slug === selectedSlug) ?? products[0],
 		[selectedSlug],
 	);
+	const previewText = useMemo(
+		() =>
+			(selected?.summary ?? '')
+				.replace(/[•]/g, '')
+				.replace(/\s*\n\s*/g, ' ')
+				.replace(/\s{2,}/g, ' ')
+				.trim(),
+		[selected?.summary],
+	);
 
 	if (!selected) return null;
 
@@ -51,14 +60,14 @@ export default function ProductsSectionInteractive() {
 						{selected.title}
 					</h3>
 					<div className="mt-4 min-h-0 flex-1">
-						<p className="text-sm leading-relaxed text-fg-muted sm:text-base">{selected.summary}</p>
+						<p className="line-clamp-6 text-sm leading-relaxed text-fg-muted sm:text-base">{previewText}</p>
 					</div>
 					<p className="mt-auto pt-8">
 						<a
 							href={`/products/${selected.slug}`}
 							className="font-semibold text-brand-secondary underline decoration-brand-secondary/40 underline-offset-4 transition hover:text-brand hover:decoration-brand"
 						>
-							Know More
+							Read More
 						</a>
 					</p>
 				</div>

@@ -75,3 +75,97 @@
 		display: none;
 	}
 }
+
+/* Legal documents (content loaded from src/content/legal/*.html) */
+@layer components {
+	.legal-doc {
+		@apply text-left text-fg;
+	}
+
+	.legal-doc h1 {
+		@apply font-display text-3xl font-bold tracking-tight text-brand sm:text-4xl;
+	}
+
+	.legal-doc h2 {
+		@apply font-display mt-10 text-2xl font-semibold tracking-tight text-brand;
+	}
+
+	.legal-doc h3 {
+		@apply mt-6 text-lg font-semibold text-fg;
+	}
+
+	.legal-doc p {
+		@apply mt-4 text-base leading-relaxed text-fg-muted first:mt-0;
+	}
+
+	.legal-doc .legal-ol {
+		@apply mt-4 list-decimal space-y-3 ps-6 text-fg-muted;
+	}
+
+	.legal-doc .legal-ol .legal-ol {
+		list-style-type: lower-alpha;
+		@apply mt-2 space-y-2;
+	}
+
+	.legal-doc .legal-ol .legal-ol .legal-ol {
+		list-style-type: lower-roman;
+	}
+
+	/* Highlighted contact details inside legal HTML fragments */
+	.legal-doc a {
+		@apply font-bold text-brand no-underline transition hover:text-brand-secondary;
+	}
+
+	.legal-doc .legal-doc-contact-placeholder {
+		@apply inline-block rounded bg-brand/10 px-1.5 py-0.5 font-semibold text-brand ring-1 ring-brand/25;
+	}
+
+	/* Footer “Important legal” block (src/content/legal/important-legal-disclosures.html) */
+	.legal-footer-disclosures {
+		@apply space-y-3 text-left text-xs leading-relaxed text-fg-muted sm:space-y-4 sm:text-sm;
+	}
+
+	.legal-footer-disclosures h2 {
+		@apply font-display text-base font-bold tracking-tight text-brand sm:text-lg;
+	}
+
+	.legal-footer-disclosures h3 {
+		@apply text-xs font-semibold text-fg sm:text-sm;
+	}
+
+	.legal-footer-disclosures h3 + p {
+		@apply mt-1.5;
+	}
+
+	.legal-footer-disclosures p + p {
+		@apply mt-1.5;
+	}
+
+	.legal-footer-disclosures p {
+		@apply text-xs leading-relaxed sm:text-sm;
+	}
+
+	.legal-footer-disclosures p strong {
+		@apply font-semibold text-fg;
+	}
+
+	.legal-footer-disclosures a {
+		@apply font-bold text-brand no-underline transition hover:text-brand-secondary;
+	}
+
+	.legal-footer-disclosures .legal-footer-company-line {
+		@apply border-t border-brand/10 pt-3 text-center sm:pt-4;
+	}
+
+	.legal-footer-disclosures .legal-footer-company-line p {
+		@apply m-0 text-[10px] leading-snug text-fg-muted sm:text-[11px];
+	}
+
+	.legal-footer-disclosures .legal-footer-company-name {
+		@apply font-semibold text-fg;
+	}
+
+	.legal-footer-disclosures .legal-footer-company-sep {
+		@apply mx-1 inline text-brand/35 sm:mx-1.5;
+	}
+}
