@@ -37,7 +37,8 @@ export const POST: APIRoute = async ({ request }) => {
 	saveOtp(mobile, code);
 
 	const payload: { ok: true; devCode?: string } = { ok: true };
-	if (import.meta.env.DEV) {
+	const exposeCode = import.meta.env.DEV || import.meta.env.OTP_EXPOSE_CODE === 'true';
+	if (exposeCode) {
 		payload.devCode = code;
 	}
 

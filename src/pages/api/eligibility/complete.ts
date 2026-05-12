@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { eligibilitySubmitSchema } from '../../../lib/eligibilityValidation';
 import { isValidAbnChecksum } from '../../../lib/abn';
+import { sendEligibilityLeadEmail } from '../../../lib/notificationEmail';
 import { verifyOtp } from '../../../lib/otpStore';
 import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 
@@ -41,8 +42,20 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 	const monthsTrading = Number((answers.monthsTrading ?? '').replace(/,/g, '').trim());
-	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading) || monthsTrading < 6) {
+	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading)) {
+		return new Response(JSON.stringify({ error: 'Enter whole months only.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	if (monthsTrading < 6) {
 		return new Response(JSON.stringify({ error: 'You must have been trading for at least 6 months.' }), {
+			status: 400,
+			headers: { 'content-type': 'application/json' },
+		});
+	}
+	if (monthsTrading > 999) {
+		return new Response(JSON.stringify({ error: 'Enter at most 999 months.' }), {
 			status: 400,
 			headers: { 'content-type': 'application/json' },
 		});
@@ -84,21 +97,32 @@ export const POST: APIRoute = async ({ request }) => {
 		user_agent: request.headers.get('user-agent')?.slice(0, 512) ?? null,
 	};
 
-	const admin = getSupabaseAdmin();
-	if (admin) {
-		const { error } = await admin.from('leads').insert(row);
-		if (error) {
-			console.error('[eligibility]', error.message);
-			return new Response(JSON.stringify({ error: 'Could not save' }), {
-				status: 500,
-				headers: { 'content-type': 'application/json' },
-			});
-		}
-	} else if (import.meta.env.DEV) {
-		console.info('[eligibility] DEV (no Supabase):', row);
-	} else {
-		return new Response(JSON.stringify({ error: 'Service unavailable' }), {
-			status: 503,
+	// const admin = getSupabaseAdmin();
+	// if (admin) {
+	// 	const { error } = await admin.from('leads').insert(row);
+	// 	if (error) {
+	// 		console.error('[eligibility]', error.message);
+	// 		return new Response(JSON.stringify({ error: 'Could not save' }), {
+	// 			status: 500,
+	// 			headers: { 'content-type': 'application/json' },
+	// 		});
+	// 	}
+	// } else if (import.meta.env.DEV) {
+	// 	console.info('[eligibility] DEV (no Supabase):', row);
+	// } else {
+	// 	return new Response(JSON.stringify({ error: 'Service unavailable' }), {
+	// 		status: 503,
+	// 		headers: { 'content-type': 'application/json' },
+	// 	});
+	// }
+
+	try {
+		await sendEligibilityLeadEmail(rest);
+	} catch (error) {
+		console.error('[eligibility][email]', error);
+		const message = error instanceof Error ? error.message : 'Could not send notification email';
+		return new Response(JSON.stringify({ error: message }), {
+			status: 500,
 			headers: { 'content-type': 'application/json' },
 		});
 	}
