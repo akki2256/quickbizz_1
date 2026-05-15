@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { eligibilityAnswersSchema } from './questionnaire/validation';
 
 export const eligibilitySubmitSchema = z.object({
-	answers: z.record(z.string(), z.string()),
+	answers: eligibilityAnswersSchema,
 	otp: z.string().length(6).regex(/^\d+$/),
 });
 

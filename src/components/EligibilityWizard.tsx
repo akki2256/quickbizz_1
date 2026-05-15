@@ -6,6 +6,25 @@ import {
 	type EligibilityStep,
 } from '../data/eligibility-flow';
 import { isValidAbnChecksum, stripXmlMarkup, type AbnLookupResult } from '../lib/abn';
+import {
+	validateAbnField,
+	validateBorrowAmount,
+	validateCallTimeChoice,
+	validateCompanyName,
+	validateCreditHistoryChoice,
+	validateEmailField,
+	validateFullName,
+	validateFundPurpose,
+	validateFundsTiming,
+	validateIndustry,
+	validateLoanPriority,
+	validateLoanUseChoice,
+	validateMaxWeeklyRepayment,
+	validateMobileField,
+	validateMonthlyRevenue,
+	validateMonthsTrading,
+	validateYesNoChoice,
+} from '../lib/questionnaire/clientValidation';
 
 const ABN_NO_DETAIL =
 	'Most lenders require an active ABN for the business funding products we can assist with.';
@@ -17,46 +36,54 @@ type AbnUiState = 'idle' | 'checking' | 'valid' | 'invalid' | 'inactive' | 'serv
 
 function validateStep(step: EligibilityStep, raw: string): string | null {
 	const v = raw.trim();
-	if (step.kind === 'choice') {
-		if (!v) return 'Please select an option.';
-		return null;
-	}
-	if (step.kind === 'number') {
-		const n = Number(v.replace(/,/g, ''));
-		if (Number.isNaN(n)) return 'Enter a valid number.';
-		if (step.min !== undefined && n < step.min) {
-			if (step.key === 'borrowAmountAud') return 'Minimum loan amount is $10,000 AUD.';
-			if (step.key === 'monthsTrading') return 'You must have been trading for at least 6 months.';
-			return `Value must be at least ${step.min}.`;
-		}
-		if (step.key === 'monthsTrading' && !Number.isInteger(n)) {
-			return 'Enter whole months only.';
-		}
-		if (step.key === 'monthsTrading' && n > 999) {
-			return 'Enter at most 999 months.';
-		}
-		return null;
-	}
-	if (step.kind === 'email') {
-		if (!v) return 'Email is required.';
-		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Enter a valid email.';
-		return null;
-	}
-	if (step.kind === 'tel') {
-		if (v.replace(/\D/g, '').length < 8) return 'Enter a valid Australian mobile.';
-		return null;
-	}
 	if (step.kind === 'otp') {
 		if (!/^\d{6}$/.test(v)) return 'Enter the 6-digit code.';
 		return null;
 	}
-	if (step.key === 'abn') {
-		if (!v) return 'ABN is required.';
-		if (!/^\d{11}$/.test(v)) return 'Enter a valid 11-digit ABN.';
-		return null;
+	switch (step.key) {
+		case 'fundPurpose':
+			return validateFundPurpose(v);
+		case 'hasAbn':
+		case 'citizenOrPr':
+		case 'homeowner':
+		case 'hasDefaults':
+		case 'trustAccount':
+			return validateYesNoChoice(v);
+		case 'loanUse':
+			return validateLoanUseChoice(v);
+		case 'borrowAmountAud':
+			return validateBorrowAmount(v);
+		case 'monthsTrading':
+			return validateMonthsTrading(v);
+		case 'monthlyRevenueAud':
+			return validateMonthlyRevenue(v);
+		case 'industry':
+			return validateIndustry(v);
+		case 'creditHistory':
+			return validateCreditHistoryChoice(v);
+		case 'fundsTiming':
+			return validateFundsTiming(v);
+		case 'loanPriority':
+			return validateLoanPriority(v);
+		case 'maxWeeklyRepaymentAud':
+			return validateMaxWeeklyRepayment(v);
+		case 'callTime':
+			return validateCallTimeChoice(v);
+		case 'fullName':
+			return validateFullName(v);
+		case 'companyName':
+			return validateCompanyName(v);
+		case 'abn':
+			return validateAbnField(v);
+		case 'email':
+			return validateEmailField(v);
+		case 'mobile':
+			return validateMobileField(v);
+		default:
+			if (step.kind === 'choice' && !v) return 'Please select an option.';
+			if (!v) return 'This field is required.';
+			return null;
 	}
-	if (!v) return 'This field is required.';
-	return null;
 }
 
 export default function EligibilityWizard() {

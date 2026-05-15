@@ -1,17 +1,23 @@
 import type { APIRoute } from 'astro';
 import { eligibilitySubmitSchema } from '../../../lib/eligibilityValidation';
-import { isValidAbnChecksum } from '../../../lib/abn';
+import { mapEligibilityAnswersToRow } from '../../../lib/questionnaire/mapAnswers';
+import {
+	getQuestionnaireBackend,
+	insertQuestionnaireSubmission,
+	isQuestionnaireStoreConfigured,
+} from '../../../lib/questionnaire/repository';
 import { sendEligibilityLeadEmail } from '../../../lib/notificationEmail';
 import { verifyOtp } from '../../../lib/otpStore';
-import { getSupabaseAdmin } from '../../../lib/supabaseAdmin';
 
 export const prerender = false;
+
+const JSON_HEADERS = { 'content-type': 'application/json' } as const;
 
 export const POST: APIRoute = async ({ request }) => {
 	if (request.headers.get('content-type')?.includes('application/json') !== true) {
 		return new Response(JSON.stringify({ error: 'Unsupported content type' }), {
 			status: 415,
-			headers: { 'content-type': 'application/json' },
+			headers: JSON_HEADERS,
 		});
 	}
 
@@ -21,100 +27,67 @@ export const POST: APIRoute = async ({ request }) => {
 	} catch {
 		return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
 			status: 400,
-			headers: { 'content-type': 'application/json' },
+			headers: JSON_HEADERS,
 		});
 	}
 
 	const parsed = eligibilitySubmitSchema.safeParse(raw);
 	if (!parsed.success) {
-		return new Response(JSON.stringify({ error: 'Validation failed', details: parsed.error.flatten() }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
+		const first = parsed.error.issues[0];
+		return new Response(
+			JSON.stringify({
+				error: first?.message ?? 'Validation failed',
+				details: parsed.error.flatten(),
+			}),
+			{ status: 400, headers: JSON_HEADERS },
+		);
 	}
 
 	const { answers, otp } = parsed.data;
-	const borrowAmount = Number((answers.borrowAmountAud ?? '').replace(/,/g, '').trim());
-	if (Number.isNaN(borrowAmount) || borrowAmount < 10000) {
-		return new Response(JSON.stringify({ error: 'Minimum loan amount is $10,000 AUD.' }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
-	}
-	const monthsTrading = Number((answers.monthsTrading ?? '').replace(/,/g, '').trim());
-	if (Number.isNaN(monthsTrading) || !Number.isInteger(monthsTrading)) {
-		return new Response(JSON.stringify({ error: 'Enter whole months only.' }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
-	}
-	if (monthsTrading < 6) {
-		return new Response(JSON.stringify({ error: 'You must have been trading for at least 6 months.' }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
-	}
-	if (monthsTrading > 999) {
-		return new Response(JSON.stringify({ error: 'Enter at most 999 months.' }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
-	}
-	const abn = answers.abn?.trim() ?? '';
-	if (!/^\d{11}$/.test(abn) || !isValidAbnChecksum(abn)) {
-		return new Response(JSON.stringify({ error: 'Enter a valid 11-digit ABN.' }), {
-			status: 400,
-			headers: { 'content-type': 'application/json' },
-		});
-	}
 	const mobile = answers.mobile?.trim() ?? '';
-	if (!mobile || !verifyOtp(mobile, otp)) {
+	if (!verifyOtp(mobile, otp)) {
 		return new Response(JSON.stringify({ error: 'Invalid or expired code' }), {
 			status: 400,
-			headers: { 'content-type': 'application/json' },
+			headers: JSON_HEADERS,
 		});
 	}
 
-	const name = answers.fullName?.trim() || 'Eligibility applicant';
-	const email = answers.email?.trim() || '';
-	if (!email) {
-		return new Response(JSON.stringify({ error: 'Email required' }), {
+	const mapped = mapEligibilityAnswersToRow(answers, {
+		userAgent: request.headers.get('user-agent'),
+		source: 'ELIGIBILITY',
+		otpVerifiedAt: new Date(),
+	});
+	if (!mapped.ok) {
+		return new Response(JSON.stringify({ error: mapped.error }), {
 			status: 400,
-			headers: { 'content-type': 'application/json' },
+			headers: JSON_HEADERS,
+		});
+	}
+
+	if (!isQuestionnaireStoreConfigured() && !import.meta.env.DEV) {
+		return new Response(JSON.stringify({ error: 'Service unavailable' }), {
+			status: 503,
+			headers: JSON_HEADERS,
+		});
+	}
+
+	try {
+		await insertQuestionnaireSubmission(mapped.row);
+	} catch (error) {
+		const backend = getQuestionnaireBackend();
+		if (import.meta.env.DEV) {
+			const msg = error instanceof Error ? error.message : String(error);
+			console.error(`[eligibility][${backend}] could not save submission:`, msg);
+		} else {
+			console.error(`[eligibility][${backend}] could not save submission`);
+		}
+		return new Response(JSON.stringify({ error: 'Could not save your submission' }), {
+			status: 500,
+			headers: JSON_HEADERS,
 		});
 	}
 
 	const { otp: _o, ...rest } = answers;
-	const message = JSON.stringify({ type: 'eligibility', answers: rest });
-
-	const row = {
-		name,
-		email,
-		phone: mobile || null,
-		company: answers.companyName?.trim() || null,
-		message,
-		source: 'eligibility',
-		user_agent: request.headers.get('user-agent')?.slice(0, 512) ?? null,
-	};
-
-	// const admin = getSupabaseAdmin();
-	// if (admin) {
-	// 	const { error } = await admin.from('leads').insert(row);
-	// 	if (error) {
-	// 		console.error('[eligibility]', error.message);
-	// 		return new Response(JSON.stringify({ error: 'Could not save' }), {
-	// 			status: 500,
-	// 			headers: { 'content-type': 'application/json' },
-	// 		});
-	// 	}
-	// } else if (import.meta.env.DEV) {
-	// 	console.info('[eligibility] DEV (no Supabase):', row);
-	// } else {
-	// 	return new Response(JSON.stringify({ error: 'Service unavailable' }), {
-	// 		status: 503,
-	// 		headers: { 'content-type': 'application/json' },
-	// 	});
-	// }
 
 	try {
 		await sendEligibilityLeadEmail(rest);
@@ -123,12 +96,12 @@ export const POST: APIRoute = async ({ request }) => {
 		const message = error instanceof Error ? error.message : 'Could not send notification email';
 		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
-			headers: { 'content-type': 'application/json' },
+			headers: JSON_HEADERS,
 		});
 	}
 
 	return new Response(JSON.stringify({ ok: true }), {
 		status: 200,
-		headers: { 'content-type': 'application/json' },
+		headers: JSON_HEADERS,
 	});
 };
