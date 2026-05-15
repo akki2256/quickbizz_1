@@ -5,7 +5,7 @@ import {
 	parseTitleAndHelper,
 	type EligibilityStep,
 } from '../data/eligibility-flow';
-import { isValidAbnChecksum, type AbnLookupResult } from '../lib/abn';
+import { isValidAbnChecksum, stripXmlMarkup, type AbnLookupResult } from '../lib/abn';
 
 const ABN_NO_DETAIL =
 	'Most lenders require an active ABN for the business funding products we can assist with.';
@@ -143,6 +143,7 @@ export default function EligibilityWizard() {
 						headers: { 'content-type': 'application/json' },
 						body: JSON.stringify({ abn }),
 						signal: controller.signal,
+						cache: 'no-store',
 					});
 					const data = (await res.json()) as AbnLookupResult | { error?: string };
 					if (!res.ok) {
@@ -155,7 +156,7 @@ export default function EligibilityWizard() {
 					if ('status' in data) {
 						setAbnStatus(data.status);
 						if (data.status === 'valid') {
-							setAbnEntityName(data.entityName);
+							setAbnEntityName(stripXmlMarkup(data.entityName));
 							setAbnMessage(null);
 							return;
 						}

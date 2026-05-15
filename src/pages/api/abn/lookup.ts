@@ -1,12 +1,23 @@
 import type { APIRoute } from 'astro';
-import { isValidAbnChecksum, type AbnLookupResult } from '../../../lib/abn';
+import {
+	isValidAbnChecksum,
+	parseAbrEntityName,
+	stripXmlMarkup,
+	type AbnLookupResult,
+} from '../../../lib/abn';
 
 export const prerender = false;
+
+const PRIVATE_JSON_HEADERS = {
+	'content-type': 'application/json',
+	'cache-control': 'no-store, no-cache, must-revalidate, private',
+	pragma: 'no-cache',
+} as const;
 
 function json(status: number, body: AbnLookupResult) {
 	return new Response(JSON.stringify(body), {
 		status,
-		headers: { 'content-type': 'application/json' },
+		headers: PRIVATE_JSON_HEADERS,
 	});
 }
 
@@ -14,7 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
 	if (request.headers.get('content-type')?.includes('application/json') !== true) {
 		return new Response(JSON.stringify({ error: 'Unsupported content type' }), {
 			status: 415,
-			headers: { 'content-type': 'application/json' },
+			headers: PRIVATE_JSON_HEADERS,
 		});
 	}
 
@@ -24,7 +35,7 @@ export const POST: APIRoute = async ({ request }) => {
 	} catch {
 		return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
 			status: 400,
-			headers: { 'content-type': 'application/json' },
+			headers: PRIVATE_JSON_HEADERS,
 		});
 	}
 
@@ -66,12 +77,10 @@ export const POST: APIRoute = async ({ request }) => {
 		}
 
 		const xml = await res.text();
-		const entityMatch =
-			xml.match(/<EntityName>([\s\S]*?)<\/EntityName>/i) ??
-			xml.match(/<MainName>([\s\S]*?)<\/MainName>/i);
-		const statusMatch = xml.match(/<ABNStatus>([\s\S]*?)<\/ABNStatus>/i);
-		const entityName = entityMatch?.[1]?.trim() ?? '';
-		const abnStatus = statusMatch?.[1]?.trim().toLowerCase() ?? '';
+		const statusMatch = xml.match(/<entityStatus>([\s\S]*?)<\/entityStatus>/i) ??
+			xml.match(/<ABNStatus>([\s\S]*?)<\/ABNStatus>/i);
+		const entityName = stripXmlMarkup(parseAbrEntityName(xml));
+		const abnStatus = stripXmlMarkup(statusMatch?.[1] ?? '').toLowerCase();
 
 		if (abnStatus.includes('cancelled') || abnStatus.includes('inactive')) {
 			return json(200, {
