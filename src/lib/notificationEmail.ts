@@ -63,6 +63,43 @@ async function sendMail(params: {
 	}
 }
 
+export async function sendQuestionnaireExportEmail(input: {
+	filename: string;
+	xlsxBuffer: Buffer;
+	rowCount: number;
+}): Promise<void> {
+	const resend = getResendClient();
+	if (!resend) {
+		if (import.meta.env.DEV) {
+			console.info(
+				'[email] DEV (no RESEND_API_KEY): questionnaire export',
+				input.filename,
+				`${input.rowCount} rows`,
+			);
+			return;
+		}
+		throw new Error('RESEND_API_KEY is not configured');
+	}
+
+	const subject = `QuickBizz : Questionnaire export (${input.rowCount} submissions)`;
+	const { error } = await resend.emails.send({
+		from: DEFAULT_RESEND_FROM,
+		to: [NOTIFICATION_TO],
+		subject,
+		html: `<p>Attached: all eligibility questionnaire submissions (${input.rowCount} rows).</p>`,
+		attachments: [
+			{
+				filename: input.filename,
+				content: input.xlsxBuffer.toString('base64'),
+			},
+		],
+	});
+
+	if (error) {
+		throw new Error(error.message || 'Failed to send export email');
+	}
+}
+
 export async function sendContactQueryEmail(input: {
 	name: string;
 	email: string;
